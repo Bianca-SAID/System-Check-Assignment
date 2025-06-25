@@ -18,13 +18,13 @@ PSEUDOCODE:
 - Open /proc/info and read it by line
 - Implement conditions to save and display the value if the line contains system information
 - When the four values are returned stop the process
-- Return the CPU information list
+- Return the CPU information dictionary
 
 5. Define the get_service_status function
 - Use os.popen to run systemctl list-units to display all active units
 - Split the words by line
 - Save the name and status to a list
-- Append to the list and return once finished
+- Append each dictionary to the list and return once finished
 
 6. Implement the main() function
 - Simply, the main function calls the program functions so it canrun
