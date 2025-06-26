@@ -1,15 +1,30 @@
 """
 PSEUDOCODE:
-1. Import the platform, os, and json modules to define the functions
-2. Define the machine_name function to return hostname
-3. Define the users_and_groups function
+1. Import the platform, os, grp, and json modules to define the functions.
+2. Define the machine_name function to return hostname.
+3. Define the users_and_groups function.
+- Read the lines and split(":") line by line
+- Fetch the username and GUID
+- Store the output in a dictionary
+- Sort the lines by alphabetusing sorted
+- Return the results as a list
 4. Define the get_cpu_info function
-5. Define the get_service_status function
-6. Implement the main() function
+- Open /proc/info and read it by line
+- Implement conditions to save and display the value if the line contains system information
+- When the four values are returned stop the process
+- Return the CPU information dictionary
+5. Define the get_service_status function.
+- Use os.popen to run systemctl list-units to display all active units
+- Split the words by line
+- Save the name and status to a list
+- Append each dictionary to the list and return once finished
+6. Implement the main() function.
+7. Create main function in PrintData.py to read and display the .json file contents.
 """
 import platform #Module provides access to platform details (hardware and OS)
 import json #Manages JSON data into a readable format
 import os #Retrieve service status from the OS
+import grp #Provides access to the UNIX group database
 
 def get_machine_name():
     return platform.node() #Uses platform to get machine name
@@ -22,7 +37,12 @@ def get_users_and_groups():
             for line in sorted(lines):
                 parts = line.split(":") #Splits lines at ":"
                 name = parts[0] #Retrieves username
-                group = parts[2] #UID from /etc/passwd
+                group = []
+                
+                for groups in grp.getgrall(): #Iterates through groups and returns a list
+                    if name in groups.gr_mem or int(parts[3]) == groups.gr_gid:#Checks if a user belongs to a group using GID
+                        group.append(groups.gr_name) #Appends the name to that group if it matches
+
                 output.append({
                     "username": name,
                     "group": group
@@ -96,58 +116,3 @@ def main():
     print("System information saved to Project_2.json")
 
 main()
-
-
-
-
-
-
-#         """
-#         Im a technician checking 50 linux laptops individually, ill write two scripts to automate collecting systeminfo and printing it out
-#         1. Project_2_WriteData.py
-#         - Needs to collect systeminfo and save it to a json file
-#         *Machine name
-#         *List of all users and the groups they belong to sorted alphabetically by username
-#         *CPU info from /proc/info
-#         *Service Status (names and if theyre active)
-#         *save it all into Project_2.json
-        
-#         2. Project_2_PrintData.py
-#         - Needs to read the json file and print it nicely
-#         ex. ==== Machine Name ====
-#         my-laptop
-
-#         ==== Users and Groups ====
-#         alice: wheel, users
-#         bob: users
-
-#         ==== Processor Information ====
-#         vendor_id: GenuineIntel
-#         model: 158
-#         model_name: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz
-#         cache: 8192 KB
-
-#         ==== Service Status ====
-#         ssh.service: active
-#         bluetooth.service: inactive
-# """
-
-
-# def get_cpu_info():
-#     try:
-#         with open("/proc/cpuinfo", "r") as f:
-#             CPU = {}
-#             for line in f:
-#                 if "vendor_id" in line and "vendor_id" not in CPU:
-#                     CPU["vendor_id"] = line.split(":")[1].strip()
-#                 elif line.startswith("model") and "model" not in CPU:
-#                     CPU["model"] = line.split(":")[1].strip()
-#                 elif "model name" in line and "model_name" not in CPU:
-#                     CPU["model_name"] = line.split(":")[1].strip()
-#                 elif "cache size" in line and "cache" not in CPU:
-#                     CPU["cache"] = line.split(":")[1].strip()
-#                 if len(CPU) == 4:
-#                     break
-#             return CPU
-#     except:
-#         return {"error": "Could not read CPU info"}
